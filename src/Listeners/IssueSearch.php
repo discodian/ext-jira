@@ -37,12 +37,24 @@ class IssueSearch implements AnswersMessages
     {
         $defer = new Deferred();
 
+        logs('matches', $options['matches']['issue']);
+
         collect(Arr::get($options, 'matches.issue', []))
             ->each(function (string $key) use ($defer) {
-                $issue = $this->issues->get($key);
+                $issue = $this->issues->get($key, [
+                    'fields' => [
+                        'summary',
+                        'content',
+                        'timetracking'
+                    ]
+                ]);
 
+                logs("JIRA issue received for $key: ", $issue->fields->toArray());
 
-                $response = (new TextResponse())->with($issue->fields->summary);
+                $response = (new TextResponse())->view(
+                    __DIR__ . '/../../views/issue.blade.php',
+                    compact('issue')
+                );
 
                 $defer->resolve($response);
             });
@@ -107,7 +119,7 @@ class IssueSearch implements AnswersMessages
 
         if ($projects->isNotEmpty()) {
             return sprintf(
-                '(?<issue>(?<project>%s)\-(?<id>[0-9]+?))',
+                '(?<issue>(?<project>%s)\-(?<id>[0-9]+))',
                 $projects->implode('|')
             );
         }
