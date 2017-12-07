@@ -4,16 +4,38 @@ namespace Discodian\JIRA\Listeners;
 
 use Discodian\Extend\Concerns\AnswersMessages;
 use Discodian\Extend\Messages\Message;
-use Discodian\Extend\Responses\Response;
+use Discodian\Extend\Responses\TextResponse;
+use Illuminate\Support\Arr;
+use JiraRestApi\Issue\IssueService;
+use React\Promise\Deferred;
 
 class IssueSearch implements AnswersMessages
 {
+    /**
+     * @var IssueService
+     */
+    protected $issues;
 
-    public function respond(Message $message, array $options = []): ?Response
+    public function __construct(IssueService $issues)
     {
-        logs("Matches", $options['matches']);
+        $this->issues = $issues;
+    }
 
-        return null;
+    public function respond(Message $message, array $options = [])
+    {
+        $defer = new Deferred();
+
+        collect(Arr::get($options, 'matches.issue', []))
+            ->each(function (string $key) use ($defer) {
+                $issue = $this->issues->get($key);
+
+
+                $response = (new TextResponse())->with($issue->fields->summary);
+
+                $defer->resolve($response);
+            });
+
+        return $defer->promise();
     }
 
     /**
@@ -73,7 +95,7 @@ class IssueSearch implements AnswersMessages
 
         if ($projects->isNotEmpty()) {
             return sprintf(
-                '(?<project>%s)\-(?<issue>[0-9]+?)',
+                '(?<issue>(?<project>%s)\-(?<id>[0-9]+?))',
                 $projects->implode('|')
             );
         }
