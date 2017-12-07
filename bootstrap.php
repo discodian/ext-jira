@@ -14,8 +14,8 @@
 
 namespace Discodian\JIRA;
 
-use Illuminate\Contracts\Foundation\Application;
+use Discodian\Extend\Responses\Registry;
 
-return function (Application $app) {
-    $app->register(Providers\JIRAProvider::class);
+return function (Registry $registry) {
+    $registry->add(Listeners\IssueSearch::class);
 };
