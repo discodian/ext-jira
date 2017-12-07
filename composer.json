@@ -1,0 +1,25 @@
+{
+    "name": "discodian/ext-jira",
+    "description": "The JIRA extension for discodian",
+    "type": "discodian-extension",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Daniël Klabbers",
+            "email": "daniel@klabbers.email",
+            "homepage": "https://luceos.com"
+        }
+    ],
+    "require": {
+        "discodian/core": "*",
+        "lesstif/php-jira-rest-client": "^1.14.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Discodian\\JIRA\\": "src/"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    }
+}
