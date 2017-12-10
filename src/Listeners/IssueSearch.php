@@ -54,7 +54,7 @@ class IssueSearch implements AnswersMessages
                 $response = (new TextResponse())->view(
                     __DIR__ . '/../../views/issue.blade.php',
                     compact('issue')
-                );
+                )->privately();
 
                 $defer->resolve($response);
             });
