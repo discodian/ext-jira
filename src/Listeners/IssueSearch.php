@@ -17,6 +17,7 @@ namespace Discodian\JIRA\Listeners;
 use Discodian\Extend\Concerns\AnswersMessages;
 use Discodian\Extend\Messages\Message;
 use Discodian\Extend\Responses\TextResponse;
+use Discodian\Parts\Guild\Embed;
 use Illuminate\Support\Arr;
 use JiraRestApi\Issue\IssueService;
 use React\Promise\Deferred;
@@ -44,23 +45,55 @@ class IssueSearch implements AnswersMessages
                 $issue = $this->issues->get($key, [
                     'fields' => [
                         'summary',
-                        'content',
-                        'timetracking'
+                        'description',
+                        'status',
+                        'timetracking',
+                        'assignee'
                     ]
                 ]);
 
                 logs("JIRA issue received for $key: ", $issue->fields->toArray());
 
-                $response = (new TextResponse())->view(
-                    __DIR__ . '/../../views/issue.blade.php',
-                    compact('issue')
-                )->privately();
+                $embed = new Embed([
+                    'title' => $issue->fields->summary,
+                    'url' => $this->linkToIssue($issue->key),
+                ]);
+
+                $fields = [];
+
+                if ($issue->fields->timeTracking) {
+                    $fields[] = [
+                        'name' => 'Time spent',
+                        'value' => $issue->fields->timeTracking->timeSpent
+                    ];
+                }
+                if ($issue->fields->assignee) {
+                    $fields[] = [
+                        'name' => 'Assignee',
+                        'value' => $issue->fields->assignee->displayName
+                    ];
+                }
+                if ($issue->fields->status) {
+                    $embed->icon_url = $issue->fields->status->iconUrl;
+                }
+
+                $embed->fields = $fields;
+
+                $response = (new TextResponse())->privately();
+
+                $response->embed = $embed;
 
                 $defer->resolve($response);
             });
 
         return $defer->promise();
     }
+
+    protected function linkToIssue(string $key)
+    {
+        return sprintf("%s/browse/%s", env('JIRA_HOST'), $key);
+    }
+
 
     /**
      * In case you want to listen to specific commands.
