@@ -79,7 +79,11 @@ class IssueSearch implements AnswersMessages
 
                 $embed->fields = $fields;
 
-                $response = (new TextResponse())->privately();
+                $response = new TextResponse();
+
+                if (env('JIRA_REPLY_PRIVATELY', false)) {
+                    $response->privately();
+                }
 
                 $response->embed = $embed;
 
