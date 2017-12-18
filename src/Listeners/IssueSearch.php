@@ -57,7 +57,8 @@ class IssueSearch implements AnswersMessages
                         'description',
                         'status',
                         'timetracking',
-                        'assignee'
+                        'assignee',
+                        'timeestimate'
                     ]
                 ]);
 
@@ -73,7 +74,10 @@ class IssueSearch implements AnswersMessages
                 if ($issue->fields->timeTracking) {
                     $fields[] = [
                         'name' => 'Time spent',
-                        'value' => $issue->fields->timeTracking->timeSpent
+                        'value' => sprintf("%s of %s",
+                            $issue->fields->timeTracking->timeSpent ?: 0,
+                            $issue->fields->timeTracking->originalEstimate ?: 0
+                        )
                     ];
                 }
                 if ($issue->fields->assignee) {
