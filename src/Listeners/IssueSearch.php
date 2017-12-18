@@ -29,6 +29,15 @@ class IssueSearch implements AnswersMessages
      */
     protected $issues;
 
+    const ADGMAP = [
+        'medium-gray' => 0xCCCCCC,
+        'green' => 0x14892C,
+        'blue-gray' => 0xDFE1E6,
+        'yellow' => 0xF6C342,
+        'brown' => 0x815B3A,
+        'warm-red' => 0xD04437
+    ];
+
     public function __construct(IssueService $issues)
     {
         $this->issues = $issues;
@@ -76,6 +85,9 @@ class IssueSearch implements AnswersMessages
                 if ($issue->fields->status) {
                     $embed->icon_url = $issue->fields->status->iconUrl;
                 }
+                if ($issue->fields->status && $issue->fields->status->statuscategory && $color = $this->translateADGcolor($issue->fields->status->statuscategory->colorName)) {
+                    $embed->color = $color;
+                }
 
                 $embed->fields = $fields;
 
@@ -93,7 +105,12 @@ class IssueSearch implements AnswersMessages
         return $defer->promise();
     }
 
-    protected function linkToIssue(string $key)
+    protected function translateADGcolor(string $color): ?string
+    {
+        return Arr::get(static::ADGMAP, $color);
+    }
+
+    protected function linkToIssue(string $key): string
     {
         return sprintf("%s/browse/%s", env('JIRA_HOST'), $key);
     }
